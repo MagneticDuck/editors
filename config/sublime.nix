@@ -3,7 +3,7 @@ with nixpkgs;
 
 {
   generalPreferences = 
-    tuckFile "Preferences.sublime-settings" (writeFile "pref" ''
+    tuckFile "Preferences.sublime-settings" (writeText "pref" ''
       {
         "color_scheme": "Packages/Spacegray/base16-eighties.dark.tmTheme",
         "ignored_packages": [ ],
@@ -16,5 +16,5 @@ with nixpkgs;
         "wrap_width": 80,
         "draw_centered": true
       }
-    '';
+    '');
 }

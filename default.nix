@@ -2,6 +2,9 @@
 with nixpkgs;
 
 let
+  ##################################################################################
+  # source directories
+
   tuckFile = name: file:
     runCommand "mover" {} ''
       mkdir -p $out
@@ -9,7 +12,10 @@ let
     '';
 
   remoteSublime = import ./remote/sublime.nix {inherit nixpkgs tuckFile;};
-  configSublime = import ./confi/sublime.nix {inherit nixpkgs tuckFile;};
+  configSublime = import ./config/sublime.nix {inherit nixpkgs tuckFile;};
+
+  ##################################################################################
+  # launch scripts
 
   doCopyDir = debug: (dirAttrs: with dirAttrs; ''
     ${if debug then 
@@ -24,9 +30,11 @@ let
     ${if debug then 
         "echo 'clearing at ${root}'" 
       else "# debug disabled"}
-    rm -rf ${root}
+    rm -rf ${root}/*
   '');
 
+  # launch script that executes 'exec' after clearing directories clearRoots
+  # and copying between the input / output directories in copyDirs
   launch = {name, debug ? true, exec, clearRoots ? [], copyDirs ? []}: 
     writeScriptBin name ''
       ${lib.concatStringsSep "\n" (map (doClearRoot debug) clearRoots)}
@@ -37,14 +45,21 @@ let
 in
 
 {
-  sublime = launch {
-    name = "sublime";
-    exec = "${nixpkgs.sublime3}/bin/sublime";
-    clearRoots = ["./test"];
-    copyDirs = [
-      { input = remoteSublime.haxeSublimeBundle;
-        output = "./test"; }
-    ];
-  };
+  sublime = 
+    let
+      packageDir = "$HOME/.config/sublime-text-3/Packages";
+    in launch {
+      name = "sublime";
+      exec = "${nixpkgs.sublime3}/bin/sublime";
+      clearRoots = [packageDir];
+      copyDirs = [
+        { input = remoteSublime.haxeSublimeBundle;
+          output = packageDir; }
+        { input = remoteSublime.spacegrayTheme;
+          output = packageDir; }
+        { input = configSublime.generalPreferences;
+          output = packageDir + "/User"; }
+      ];
+    };
 }
 
