@@ -6,13 +6,16 @@ let
   # source directories
 
   tuckFile = name: file:
-    runCommand "mover" {} ''
+    runCommand name {} ''
       mkdir -p $out
       cp -r "${file}" "$out/${name}"
     '';
 
   remoteSublime = import ./remote/sublime.nix {inherit nixpkgs tuckFile;};
   configSublime = import ./config/sublime.nix {inherit nixpkgs tuckFile;};
+
+  remoteAtom = import ./remote/atom.nix {inherit nixpkgs tuckFile;};
+  configAtom = import ./config/atom.nix {inherit nixpkgs tuckFile;};
 
   ##################################################################################
   # launch scripts
@@ -22,7 +25,7 @@ let
         "echo 'writing to ${output}'" 
       else "# debug disbled"}
     mkdir -p ${output}
-    cp -r ${input}/* ${output}
+    cp -r ${input}/* ${output}/
     chmod -R +rw ${output}
   '');
 
@@ -30,7 +33,10 @@ let
     ${if debug then 
         "echo 'clearing at ${root}'" 
       else "# debug disabled"}
-    rm -rf ${root}/*
+    if [ -d ${root} ]
+    then rm -rf ${root}/*
+    else rm -f ${root}
+    fi
   '');
 
   # launch script that executes 'exec' after clearing directories clearRoots
@@ -39,12 +45,13 @@ let
     writeScriptBin name ''
       ${lib.concatStringsSep "\n" (map (doClearRoot debug) clearRoots)}
       ${lib.concatStringsSep "\n" (map (doCopyDir debug) copyDirs)}
-      ${exec}
+      ${exec} "$@"
     '';
 
 in
 
 {
+  # I use sublime text for haxe
   sublime = 
     let
       packageDir = "$HOME/.config/sublime-text-3/Packages";
@@ -59,6 +66,30 @@ in
           output = packageDir; }
         { input = configSublime.generalPreferences;
           output = packageDir + "/User"; }
+      ];
+    };
+
+  # I use atom for haskell
+  atom = 
+    let
+      atomDir = "$HOME/.atom";
+      packageDir = atomDir + "/dev/packages";
+    in launch {
+      name = "atom";
+      exec = "${nixpkgs.atom}/bin/atom";
+      clearRoots = 
+        [ packageDir (atomDir + "/config.cson")
+          (atomDir + "/packages")
+        ];
+      copyDirs = [
+        { input = configAtom.generalPreferences;
+          output = atomDir; }
+        # { input = remoteAtom.ideHaskell;
+          # output = packageDir; }
+        { input = remoteAtom.vimMode;
+          output = packageDir; }
+        { input = remoteAtom.minimap;
+          output = packageDir; }
       ];
     };
 }
