@@ -6,7 +6,7 @@ let
   # source directories
 
   tuckFile = name: file:
-    runCommand name {} ''
+    runCommand "tucked-dir" {} ''
       mkdir -p $out
       cp -r "${file}" "$out/${name}"
     '';
@@ -51,14 +51,15 @@ let
 in
 
 {
-  # I use sublime text for haxe
+  ##################################################################################
+  # I use sublime text for haxe and haskell
   sublime = 
     let
       packageDir = "$HOME/.config/sublime-text-3/Packages";
     in launch {
       name = "sublime";
       exec = "${nixpkgs.sublime3}/bin/sublime";
-      clearRoots = [packageDir];
+      clearRoots = [packageDir (packageDir + "/User")];
       copyDirs = [
         { input = remoteSublime.haxeSublimeBundle;
           output = packageDir; }
@@ -69,7 +70,8 @@ in
       ];
     };
 
-  # I use atom for haskell
+  ##################################################################################
+  # I use atom for some other things
   atom = 
     let
       atomDir = "$HOME/.atom";
@@ -86,10 +88,10 @@ in
           output = atomDir; }
         # { input = remoteAtom.ideHaskell;
           # output = packageDir; }
-        { input = remoteAtom.vimMode;
-          output = packageDir; }
-        { input = remoteAtom.minimap;
-          output = packageDir; }
+        # { input = remoteAtom.vimMode;
+          # output = packageDir; }
+        # { input = remoteAtom.minimap;
+          # output = packageDir; }
       ];
     };
 }
