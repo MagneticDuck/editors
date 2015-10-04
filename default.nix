@@ -52,7 +52,7 @@ in
 
 {
   ##################################################################################
-  # I use sublime text for haxe and haskell
+  # I use sublime text for haxe 
   sublime = 
     let
       packageDir = "$HOME/.config/sublime-text-3/Packages";
@@ -63,15 +63,19 @@ in
       copyDirs = [
         { input = remoteSublime.haxeSublimeBundle;
           output = packageDir; }
+        # { input = remoteSublime.sublimeHaskell;
+          # output = packageDir; }
         { input = remoteSublime.spacegrayTheme;
           output = packageDir; }
         { input = configSublime.generalPreferences;
           output = packageDir + "/User"; }
+        # { input = configSublime.sublimeHaskell;
+          # output = packageDir + "/User"; }
       ];
     };
 
   ##################################################################################
-  # I use atom for some other things
+  # this packaged atom is currently broken
   atom = 
     let
       atomDir = "$HOME/.atom";
